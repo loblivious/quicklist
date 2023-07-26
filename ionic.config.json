@@ -1,0 +1,7 @@
+{
+  "name": "quicklist",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import {
@@ -22,9 +21,8 @@ export class AppComponent {}
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    CommonModule,
-    IonicModule.forRoot(),
     BrowserModule,
+    IonicModule.forRoot(),
     RouterModule.forRoot(
       [
         {
@@ -42,5 +40,6 @@ export class AppComponent {}
     ),
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  bootstrap: [AppComponent],
 })
 export class AppModule {}

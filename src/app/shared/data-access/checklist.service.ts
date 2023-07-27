@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, filter, map } from 'rxjs';
 import { Checklist } from '../interfaces/checcklist';
 
 @Injectable({
@@ -10,6 +10,13 @@ export class ChecklistService {
 
   getChecklists() {
     return this.checklists$.asObservable();
+  }
+
+  getChecklistById(id: string) {
+    return this.getChecklists().pipe(
+      filter((checklists) => checklists.length > 0),
+      map((checklists) => checklists.find((checklist) => checklist.id === id))
+    );
   }
 
   add(checklist: Pick<Checklist, 'title'>) {

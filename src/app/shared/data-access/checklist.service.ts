@@ -12,7 +12,7 @@ export class ChecklistService {
     return this.checklists$.asObservable();
   }
 
-  add(checklist: Checklist) {
+  add(checklist: Pick<Checklist, 'title'>) {
     const newChecklist = {
       ...checklist,
       id: this.generateSlug(checklist.title),

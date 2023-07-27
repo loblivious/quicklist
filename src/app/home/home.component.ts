@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
 import { FormModalComponentModule } from './../shared/ui/form-modal.component';
 import { ChecklistService } from '../shared/data-access/checklist.service';
+import { ChecklistListComponentModule } from '../shared/ui/checklist-list.component';
 
 @Component({
   selector: 'app-home',
@@ -21,6 +22,11 @@ import { ChecklistService } from '../shared/data-access/checklist.service';
       </ion-toolbar>
     </ion-header>
     <ion-content>
+      <app-checklist-list
+        *ngIf="checklists$ | async as checklists"
+        [checklists]="checklists"
+      ></app-checklist-list>
+
       <ion-modal
         [isOpen]="formModalIsOpen$ | async"
         [canDismiss]="true"
@@ -40,12 +46,16 @@ import { ChecklistService } from '../shared/data-access/checklist.service';
 })
 export class HomeComponent {
   formModalIsOpen$ = new BehaviorSubject<boolean>(false);
+  checklists$ = this.checklistService.getChecklists();
 
   checklistForm = this.fb.nonNullable.group({
     title: ['', Validators.required],
   });
 
-  constructor(private fb: FormBuilder, private checklistService: ChecklistService) {}
+  constructor(
+    private fb: FormBuilder,
+    private checklistService: ChecklistService
+  ) {}
 
   addChecklist() {
     this.checklistService.add(this.checklistForm.getRawValue());
@@ -58,6 +68,7 @@ export class HomeComponent {
     IonicModule,
     CommonModule,
     FormModalComponentModule,
+    ChecklistListComponentModule,
     RouterModule.forChild([
       {
         path: '',

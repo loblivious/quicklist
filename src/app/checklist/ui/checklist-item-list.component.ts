@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   Input,
   NgModule,
+  Output,
 } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { ChecklistItem } from 'src/app/shared/interfaces/checklist-item';
@@ -13,7 +15,13 @@ import { ChecklistItem } from 'src/app/shared/interfaces/checklist-item';
   template: `
     <ion-list lines="none">
       <ion-item *ngFor="let item of checklistItems; trackBy: trackByFn">
-        <ion-label>{{ item.title }}</ion-label>
+        <ion-checkbox
+          [checked]="item.checked"
+          justify="space-between"
+          (ionChange)="toggle.emit(item.id)"
+        >
+          {{ item.title }}
+        </ion-checkbox>
       </ion-item>
     </ion-list>
   `,
@@ -21,6 +29,7 @@ import { ChecklistItem } from 'src/app/shared/interfaces/checklist-item';
 })
 export class ChecklistItemListComponent {
   @Input() checklistItems: ChecklistItem[] = [];
+  @Output() toggle = new EventEmitter<string>();
 
   trackByFn(index: number, item: ChecklistItem) {
     return item.id;

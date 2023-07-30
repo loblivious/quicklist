@@ -14,7 +14,7 @@ export class StorageService {
   private storage$ = from(this.ionicStorage.create()).pipe(shareReplay(1));
 
   loadChecklists$: Observable<Checklist[]> = this.storage$.pipe(
-    switchMap((storage) => from(storage.get('checklist'))),
+    switchMap((storage) => from(storage.get('checklists'))),
     map((checklists) => checklists ?? []),
     tap(() => (this.#checklistHasLoaded = true)),
     shareReplay(1)
@@ -31,17 +31,17 @@ export class StorageService {
 
   saveChecklists(checklists: Checklist[]) {
     if (this.#checklistHasLoaded) {
-      this.storage$
-        .pipe(take(1))
-        .subscribe((storage) => storage.set('checklists', checklists));
+      this.storage$.pipe(take(1)).subscribe((storage) => {
+        storage.set('checklists', checklists);
+      });
     }
   }
 
   saveChecklistItems(checklistItems: ChecklistItem[]) {
     if (this.#checklistItemsHasLoaded) {
-      this.storage$
-        .pipe(take(1))
-        .subscribe((storage) => storage.set('checklistItems', checklistItems));
+      this.storage$.pipe(take(1)).subscribe((storage) => {
+        storage.set('checklistItems', checklistItems);
+      });
     }
   }
 }

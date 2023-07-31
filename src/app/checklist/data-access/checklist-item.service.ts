@@ -57,4 +57,28 @@ export class ChecklistItemService {
 
     this.checklistItems$.next(newItems);
   }
+
+  update(id: string, editedItem: AddChecklistItem) {
+    const newItems = this.checklistItems$.value.map((item) =>
+      item.id === id ? { ...item, title: editedItem.title } : item
+    );
+
+    this.checklistItems$.next(newItems);
+  }
+
+  remove(id: string) {
+    const newItems = this.checklistItems$.value.filter(
+      (item) => item.id !== id
+    );
+
+    this.checklistItems$.next(newItems);
+  }
+
+  removeAllItemsForChecklist(checklistId: string) {
+    const modifiedItems = this.checklistItems$.value.filter(
+      (item) => item.checklistId !== checklistId
+    );
+
+    this.checklistItems$.next(modifiedItems);
+  }
 }

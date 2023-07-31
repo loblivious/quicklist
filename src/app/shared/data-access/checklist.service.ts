@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, filter, map, shareReplay, take, tap } from 'rxjs';
-import { Checklist } from '../interfaces/checcklist';
+import {
+  BehaviorSubject,
+  Observable,
+  filter,
+  map,
+  shareReplay,
+  take,
+  tap,
+} from 'rxjs';
+import { AddChecklist, Checklist } from '../interfaces/checcklist';
+import { ChecklistItemService } from './../../checklist/data-access/checklist-item.service';
 import { StorageService } from './storage.service';
 
 @Injectable({
@@ -14,7 +23,10 @@ export class ChecklistService {
     shareReplay(1)
   );
 
-  constructor(private storageService: StorageService) {}
+  constructor(
+    private storageService: StorageService,
+    private checklistItemService: ChecklistItemService
+  ) {}
 
   load() {
     this.storageService.loadChecklists$
@@ -35,7 +47,7 @@ export class ChecklistService {
     );
   }
 
-  add(checklist: Pick<Checklist, 'title'>) {
+  add(checklist: AddChecklist) {
     const newChecklist = {
       ...checklist,
       id: this.generateSlug(checklist.title),
@@ -56,5 +68,25 @@ export class ChecklistService {
     }
 
     return slug;
+  }
+
+  remove(id: string) {
+    const modifiedChecklists = this.checklists$.value.filter(
+      (checklist) => checklist.id !== id
+    );
+
+    this.checklistItemService.removeAllItemsForChecklist(id);
+
+    this.checklists$.next(modifiedChecklists);
+  }
+
+  update(id: string, editedData: AddChecklist) {
+    const modifiedChecklists = this.checklists$.value.map((checklist) =>
+      checklist.id === id
+        ? { ...checklist, title: editedData.title }
+        : checklist
+    );
+
+    this.checklists$.next(modifiedChecklists);
   }
 }

@@ -9,6 +9,7 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { FormModalComponentModule } from '../shared/ui/form-modal.component';
 import { ChecklistItemListComponentModule } from './ui/checklist-item-list.component';
 import { Checklist } from '../shared/interfaces/checcklist';
+import { ChecklistItem } from '../shared/interfaces/checklist-item';
 
 @Component({
   selector: 'app-checklist',
@@ -37,17 +38,27 @@ import { Checklist } from '../shared/interfaces/checcklist';
         <app-checklist-item-list
           [checklistItems]="vm.items"
           (toggle)="toggleChecklistItem($event)"
+          (delete)="deleteChecklistItem($event)"
+          (edit)="openEditModal($event)"
         ></app-checklist-item-list>
         <ion-modal
           [isOpen]="vm.formModalIsOpen"
           [canDismiss]="true"
-          (ionModalDidDismiss)="formModalIsOpen$.next(false)"
+          (ionModalDidDismiss)="
+            checklistItemIdBeingEdited$.next(null); formModalIsOpen$.next(false)
+          "
         >
           <ng-template>
             <app-form-modal
-              title="Create item"
+              [title]="
+                vm.checklistItemIdBeingEdited ? 'Edit item' : 'Create item'
+              "
               [formGroup]="checklistItemForm"
-              (save)="addChecklistItem(vm.checklist.id)"
+              (save)="
+                vm.checklistItemIdBeingEdited
+                  ? editChecklistItem(vm.checklistItemIdBeingEdited)
+                  : addChecklistItem(vm.checklist.id)
+              "
             ></app-form-modal>
           </ng-template>
         </ion-modal>
@@ -71,13 +82,21 @@ export class ChecklistComponent {
   );
 
   formModalIsOpen$ = new BehaviorSubject<boolean>(false);
+  checklistItemIdBeingEdited$ = new BehaviorSubject<string | null>(null);
 
-  vm$ = combineLatest([this.checklistAndItems$, this.formModalIsOpen$]).pipe(
-    map(([[checklist, items], formModalIsOpen]) => ({
-      checklist,
-      items,
-      formModalIsOpen,
-    }))
+  vm$ = combineLatest([
+    this.checklistAndItems$,
+    this.formModalIsOpen$,
+    this.checklistItemIdBeingEdited$,
+  ]).pipe(
+    map(
+      ([[checklist, items], formModalIsOpen, checklistItemIdBeingEdited]) => ({
+        checklist,
+        items,
+        formModalIsOpen,
+        checklistItemIdBeingEdited,
+      })
+    )
   );
 
   checklistItemForm = this.fb.nonNullable.group({
@@ -104,6 +123,20 @@ export class ChecklistComponent {
 
   resetChecklistItems(checklistId: string) {
     this.checklistItemService.reset(checklistId);
+  }
+
+  deleteChecklistItem(id: string) {
+    this.checklistItemService.remove(id);
+  }
+
+  editChecklistItem(id: string) {
+    this.checklistItemService.update(id, this.checklistItemForm.getRawValue());
+  }
+
+  openEditModal(checklistItem: ChecklistItem) {
+    this.checklistItemForm.patchValue({ title: checklistItem.title });
+    this.checklistItemIdBeingEdited$.next(checklistItem.id);
+    this.formModalIsOpen$.next(true);
   }
 }
 

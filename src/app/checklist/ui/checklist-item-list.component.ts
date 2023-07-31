@@ -53,6 +53,15 @@ import { ChecklistItem } from 'src/app/shared/interfaces/checklist-item';
       </ion-card>
     </ion-list>
   `,
+  styles: [
+    `
+      ion-label {
+        font-weight: bold;
+        margin: 20px;
+        white-space: normal;
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChecklistItemListComponent {

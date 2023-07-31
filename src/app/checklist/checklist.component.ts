@@ -27,7 +27,7 @@ import { ChecklistItemListComponentModule } from './ui/checklist-item-list.compo
   selector: 'app-checklist',
   template: `
     <ng-container *ngIf="vm$ | async as vm">
-      <ion-header>
+      <ion-header class="ion-no-border">
         <ion-toolbar>
           <ion-buttons slot="start">
             <ion-back-button defaultHref="/"></ion-back-button>
@@ -78,6 +78,13 @@ import { ChecklistItemListComponentModule } from './ui/checklist-item-list.compo
       </ion-content>
     </ng-container>
   `,
+  styles: [
+    `
+      ion-header {
+        background-color: var(--ion-color-primary);
+      }
+    `,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChecklistComponent {

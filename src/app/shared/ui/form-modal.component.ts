@@ -50,6 +50,19 @@ import { IonicModule, ModalController } from '@ionic/angular';
       :host {
         height: 100%;
       }
+
+      ion-label {
+        font-weight: bold;
+      }
+
+      form {
+        padding: 1rem;
+      }
+
+      ion-button {
+        margin-top: 1rem;
+        width: 100%;
+      }
     `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -24,7 +24,9 @@ import { ChecklistListComponentModule } from './ui/checklist-list.component';
   template: `
     <ion-header>
       <ion-toolbar>
-        <ion-title>Home</ion-title>
+        <ion-title>
+          <img src="assets/logo.svg" />
+        </ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="formModalIsOpen$.next(true)">
             <ion-icon name="add" slot="icon-only"></ion-icon>
@@ -32,7 +34,13 @@ import { ChecklistListComponentModule } from './ui/checklist-list.component';
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <ion-content>
+    <ion-content [fullscreen]="true">
+      <ion-header collapse="condense">
+        <ion-toolbar>
+          <ion-title color="light" size="large">Your lists</ion-title>
+        </ion-toolbar>
+      </ion-header>
+
       <app-checklist-list
         *ngIf="checklists$ | async as checklists"
         [checklists]="checklists"

@@ -1,15 +1,27 @@
-import { ChecklistItemService } from './data-access/checklist-item.service';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, NgModule } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  NgModule,
+  ViewChild,
+} from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
-import { BehaviorSubject, combineLatest, filter, map, switchMap } from 'rxjs';
+import { IonContent, IonRouterOutlet, IonicModule } from '@ionic/angular';
+import {
+  BehaviorSubject,
+  combineLatest,
+  filter,
+  map,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { ChecklistService } from '../shared/data-access/checklist.service';
-import { FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { FormModalComponentModule } from '../shared/ui/form-modal.component';
-import { ChecklistItemListComponentModule } from './ui/checklist-item-list.component';
 import { Checklist } from '../shared/interfaces/checcklist';
 import { ChecklistItem } from '../shared/interfaces/checklist-item';
+import { FormModalComponentModule } from '../shared/ui/form-modal.component';
+import { ChecklistItemService } from './data-access/checklist-item.service';
+import { ChecklistItemListComponentModule } from './ui/checklist-item-list.component';
 
 @Component({
   selector: 'app-checklist',
@@ -47,6 +59,7 @@ import { ChecklistItem } from '../shared/interfaces/checklist-item';
           (ionModalDidDismiss)="
             checklistItemIdBeingEdited$.next(null); formModalIsOpen$.next(false)
           "
+          [presentingElement]="routerOutlet.nativeEl"
         >
           <ng-template>
             <app-form-modal
@@ -74,9 +87,11 @@ export class ChecklistComponent {
         this.checklistService
           .getChecklistById(paramMap.get('id') as string)
           .pipe(filter((checklist): checklist is Checklist => !!checklist)),
-        this.checklistItemService.getItemsByChecklistId(
-          paramMap.get('id') as string
-        ),
+        this.checklistItemService
+          .getItemsByChecklistId(paramMap.get('id') as string)
+          .pipe(
+            tap(() => setTimeout(() => this.ionContent.scrollToBottom(200), 0))
+          ),
       ])
     )
   );
@@ -103,11 +118,14 @@ export class ChecklistComponent {
     title: ['', Validators.required],
   });
 
+  @ViewChild(IonContent) ionContent!: IonContent;
+
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private checklistService: ChecklistService,
-    private checklistItemService: ChecklistItemService
+    private checklistItemService: ChecklistItemService,
+    public routerOutlet: IonRouterOutlet
   ) {}
 
   addChecklistItem(checklistId: string) {

@@ -18,6 +18,8 @@ import { StorageService } from './storage.service';
 export class ChecklistService {
   private checklists$ = new BehaviorSubject<Checklist[]>([]);
 
+  // pipe will convert behavior subject into observable, so we need to make a
+  // new observable to keep ultilizing behavior subject's next()
   private sharedChecklists$: Observable<Checklist[]> = this.checklists$.pipe(
     tap((checklists) => this.storageService.saveChecklists(checklists)),
     shareReplay(1)

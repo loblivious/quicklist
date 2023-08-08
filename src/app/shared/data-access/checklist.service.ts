@@ -1,10 +1,13 @@
+import { AddChecklist } from './../interfaces/checcklist';
 import { Injectable } from '@angular/core';
+import { ComponentStore } from '@ngrx/component-store';
 import {
   BehaviorSubject,
   Observable,
   filter,
   map,
   shareReplay,
+  switchMap,
   take,
   tap,
 } from 'rxjs';
@@ -12,11 +15,53 @@ import { AddChecklist, Checklist } from '../interfaces/checcklist';
 import { ChecklistItemService } from './../../checklist/data-access/checklist-item.service';
 import { StorageService } from './storage.service';
 
+interface ChecklistState {
+  checklists: Checklist[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class ChecklistService {
-  private checklists$ = new BehaviorSubject<Checklist[]>([]);
+export class ChecklistService extends ComponentStore<ChecklistState> {
+  // selectors
+  checklists$ = this.select((state) => state.checklists).pipe(
+    tap((checklists) => this.storageService.saveChecklists(checklists))
+  );
+
+  //effects
+  load = this.effect(($) =>
+    $.pipe(
+      switchMap(() =>
+        this.storageService.loadChecklists$.pipe(
+          tap((checklists) => {
+            this.patchState({ checklists });
+          })
+        )
+      )
+    )
+  );
+
+  //updaters
+  add = this.updater((state, checklist: AddChecklist) => ({
+    ...state,
+    checklists: [
+      ...state.checklists,
+      {
+        ...checklist,
+        id: this.generateSlug(checklist.title),
+      },
+    ],
+  }));
+
+  remove = this.updater((state, id: string) => {
+    this.checklistItemService.removeAllItemsForChecklist(id);
+    return {
+      ...state,
+      checklists: [
+        ...state.checklists.filter((checklist) => checklist.id !== id),
+      ],
+    };
+  });
 
   // pipe will convert behavior subject into observable, so we need to make a
   // new observable to keep ultilizing behavior subject's next()
@@ -28,14 +73,8 @@ export class ChecklistService {
   constructor(
     private storageService: StorageService,
     private checklistItemService: ChecklistItemService
-  ) {}
-
-  load() {
-    this.storageService.loadChecklists$
-      .pipe(take(1))
-      .subscribe((checklists) => {
-        this.checklists$.next(checklists);
-      });
+  ) {
+    super({ checklists: [] });
   }
 
   getChecklists() {
@@ -47,15 +86,6 @@ export class ChecklistService {
       filter((checklists) => checklists.length > 0),
       map((checklists) => checklists.find((checklist) => checklist.id === id))
     );
-  }
-
-  add(checklist: AddChecklist) {
-    const newChecklist = {
-      ...checklist,
-      id: this.generateSlug(checklist.title),
-    };
-
-    this.checklists$.next([...this.checklists$.value, newChecklist]);
   }
 
   generateSlug(title: string) {
@@ -70,25 +100,5 @@ export class ChecklistService {
     }
 
     return slug;
-  }
-
-  remove(id: string) {
-    const modifiedChecklists = this.checklists$.value.filter(
-      (checklist) => checklist.id !== id
-    );
-
-    this.checklistItemService.removeAllItemsForChecklist(id);
-
-    this.checklists$.next(modifiedChecklists);
-  }
-
-  update(id: string, editedData: AddChecklist) {
-    const modifiedChecklists = this.checklists$.value.map((checklist) =>
-      checklist.id === id
-        ? { ...checklist, title: editedData.title }
-        : checklist
-    );
-
-    this.checklists$.next(modifiedChecklists);
   }
 }

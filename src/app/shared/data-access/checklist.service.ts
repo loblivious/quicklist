@@ -1,18 +1,9 @@
-import { AddChecklist } from './../interfaces/checcklist';
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import {
-  BehaviorSubject,
-  Observable,
-  filter,
-  map,
-  shareReplay,
-  switchMap,
-  take,
-  tap,
-} from 'rxjs';
-import { AddChecklist, Checklist } from '../interfaces/checcklist';
+import { filter, map, switchMap, tap } from 'rxjs';
+import { Checklist } from '../interfaces/checcklist';
 import { ChecklistItemService } from './../../checklist/data-access/checklist-item.service';
+import { AddChecklist } from './../interfaces/checcklist';
 import { StorageService } from './storage.service';
 
 interface ChecklistState {
@@ -63,11 +54,17 @@ export class ChecklistService extends ComponentStore<ChecklistState> {
     };
   });
 
-  // pipe will convert behavior subject into observable, so we need to make a
-  // new observable to keep ultilizing behavior subject's next()
-  private sharedChecklists$: Observable<Checklist[]> = this.checklists$.pipe(
-    tap((checklists) => this.storageService.saveChecklists(checklists)),
-    shareReplay(1)
+  update = this.updater(
+    (state, args: { id: string; editedData: AddChecklist }) => ({
+      ...state,
+      checklists: [
+        ...state.checklists.map((checklist) =>
+          checklist.id === args.id
+            ? { ...checklist, title: args.editedData.title }
+            : checklist
+        ),
+      ],
+    })
   );
 
   constructor(
@@ -78,12 +75,12 @@ export class ChecklistService extends ComponentStore<ChecklistState> {
   }
 
   getChecklists() {
-    return this.sharedChecklists$;
+    return this.checklists$;
   }
 
   getChecklistById(id: string) {
-    return this.getChecklists().pipe(
-      filter((checklists) => checklists.length > 0),
+    return this.checklists$.pipe(
+      filter((checklists) => checklists.length > 0), // don't emit if checklists haven't loaded yet
       map((checklists) => checklists.find((checklist) => checklist.id === id))
     );
   }
@@ -91,7 +88,7 @@ export class ChecklistService extends ComponentStore<ChecklistState> {
   generateSlug(title: string) {
     let slug = title.toLowerCase().replace(/\s+/g, '-');
 
-    const matchingSlugs = this.checklists$.value.find(
+    const matchingSlugs = this.get().checklists.find(
       (checklist) => checklist.id === slug
     );
 

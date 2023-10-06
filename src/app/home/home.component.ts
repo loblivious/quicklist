@@ -131,7 +131,10 @@ export class HomeComponent {
   }
 
   editChecklist(id: string) {
-    this.checklistService.update(id, this.checklistForm.getRawValue());
+    this.checklistService.update({
+      id,
+      editedData: this.checklistForm.getRawValue(),
+    });
   }
 
   openEditModal(checklist: Checklist) {
